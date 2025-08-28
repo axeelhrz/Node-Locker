@@ -18,6 +18,13 @@ const CONFIG = {
   intersection: {
     threshold: 0.15,
     rootMargin: '0px 0px -100px 0px'
+  },
+  scheduling: {
+    calendlyUrl: 'https://calendly.com/nodolocker/reunion-comercial',
+    meetingDuration: 30,
+    timezone: 'America/Mexico_City',
+    fallbackEmail: 'contacto@nodolocker.mx',
+    fallbackPhone: '+52 55 1234 5678'
   }
 };
 
@@ -436,14 +443,12 @@ function initializeFloatingCTA() {
     observer.observe(contactSection);
   }
   
-  // Agregar evento click al botón flotante
+  // Agregar evento click al botón flotante - MEJORADO
   const floatingBtn = elements.floatingCTA.querySelector('.btn-floating');
   if (floatingBtn) {
-    floatingBtn.addEventListener('click', () => {
-      const contactSection = document.getElementById('contacto');
-      if (contactSection) {
-        smoothScrollTo(contactSection);
-      }
+    floatingBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleScheduleMeeting(floatingBtn);
     });
   }
 }
@@ -481,41 +486,246 @@ function handleCTAClick(buttonType, event) {
   }
 }
 
+// FUNCIÓN MEJORADA PARA DESCARGA DE PDF REAL
 async function handleDownload(button) {
   try {
     showNotification('Preparando descarga de la presentación...', 'info');
     
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Añadir efecto visual inmediato
+    button.classList.add('downloading');
     
-    // Simular descarga
+    // Crear elemento de descarga
     const link = document.createElement('a');
-    link.href = 'data:text/plain;charset=utf-8,Nodo Locker - Presentación Ejecutiva';
-    link.download = 'Nodo-Locker-Presentacion.pdf';
+    link.href = 'Assets/NODO_LOCKER SALES DECK 2.pdf';
+    link.download = 'Nodo-Locker-Presentacion-Ejecutiva.pdf';
+    link.style.display = 'none';
+    
+    // Añadir al DOM temporalmente
+    document.body.appendChild(link);
+    
+    // Simular un pequeño delay para mejor UX
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Iniciar descarga
     link.click();
     
-    showNotification('¡Descarga iniciada exitosamente!', 'success');
+    // Limpiar
+    document.body.removeChild(link);
+    
+    showNotification('¡Descarga iniciada exitosamente! Revisa tu carpeta de descargas.', 'success');
+    
+    // Actualizar texto del botón temporalmente
+    const buttonText = button.querySelector('.btn-text');
+    const originalText = buttonText ? buttonText.textContent : '';
+    
+    if (buttonText) {
+      buttonText.textContent = '¡Descargado!';
+      setTimeout(() => {
+        buttonText.textContent = originalText;
+      }, 3000);
+    }
     
   } catch (error) {
     console.error('Error en descarga:', error);
-    showNotification('Error al iniciar la descarga', 'error');
+    showNotification('Error al iniciar la descarga. Por favor, inténtalo de nuevo.', 'error');
   } finally {
-    button.classList.remove('loading');
+    button.classList.remove('loading', 'downloading');
   }
 }
 
+// FUNCIÓN MEJORADA PARA AGENDAR REUNIÓN
 async function handleScheduleMeeting(button) {
   try {
-    showNotification('Abriendo calendario...', 'info');
+    showNotification('Abriendo calendario de reuniones...', 'info');
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Añadir efecto visual inmediato
+    button.classList.add('scheduling');
     
-    showNotification('Redirigiendo al calendario de reuniones', 'success');
+    // Crear parámetros para la URL de Calendly
+    const schedulingParams = new URLSearchParams({
+      'hide_event_type_details': '1',
+      'hide_gdpr_banner': '1',
+      'primary_color': 'ff6b35',
+      'text_color': '1e293b',
+      'background_color': 'ffffff',
+      'utm_source': 'nodolocker_website',
+      'utm_medium': 'cta_button',
+      'utm_campaign': 'reunion_comercial'
+    });
+    
+    // URL completa de Calendly con parámetros
+    const calendlyUrl = `${CONFIG.scheduling.calendlyUrl}?${schedulingParams.toString()}`;
+    
+    // Detectar si es dispositivo móvil para mejor experiencia
+    const isMobile = window.innerWidth <= CONFIG.breakpoints.mobile;
+    
+    if (isMobile) {
+      // En móvil, abrir directamente
+      window.location.href = calendlyUrl;
+    } else {
+      // En desktop, abrir en nueva pestaña
+      const newWindow = window.open(calendlyUrl, '_blank', 'noopener,noreferrer');
+      
+      // Verificar si se bloqueó el popup
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        // Si se bloqueó, mostrar modal con instrucciones
+        showSchedulingModal(calendlyUrl);
+      } else {
+        showNotification('¡Calendario abierto! Selecciona tu horario preferido.', 'success');
+        
+        // Opcional: Enfocar la nueva ventana después de un momento
+        setTimeout(() => {
+          if (newWindow && !newWindow.closed) {
+            newWindow.focus();
+          }
+        }, 500);
+      }
+    }
+    
+    // Tracking de evento (opcional)
+    trackSchedulingEvent('calendar_opened', {
+      source: button.id || 'unknown_button',
+      timestamp: new Date().toISOString(),
+      user_agent: navigator.userAgent,
+      is_mobile: isMobile
+    });
     
   } catch (error) {
     console.error('Error al abrir calendario:', error);
-    showNotification('Error al abrir el calendario', 'error');
+    showNotification('Error al abrir el calendario. Por favor, inténtalo de nuevo.', 'error');
+    
+    // Fallback: mostrar información de contacto
+    showContactFallback();
+    
   } finally {
-    button.classList.remove('loading');
+    button.classList.remove('loading', 'scheduling');
+  }
+}
+
+// Nueva función para mostrar modal cuando se bloquea popup
+function showSchedulingModal(calendlyUrl) {
+  const modal = document.createElement('div');
+  modal.className = 'scheduling-modal';
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="this.parentElement.remove()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Agendar Reunión</h3>
+          <button class="modal-close" onclick="this.closest('.scheduling-modal').remove()">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Para agendar tu reunión, haz clic en el botón de abajo:</p>
+          <div class="modal-actions">
+            <a href="${calendlyUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary large">
+              <i class="ph ph-calendar btn-icon-left"></i>
+              <span class="btn-text">Abrir Calendario</span>
+            </a>
+          </div>
+          <div class="modal-alternative">
+            <p>¿Prefieres contactarnos directamente?</p>
+            <div class="contact-options">
+              <a href="mailto:${CONFIG.scheduling.fallbackEmail}" class="contact-option">
+                <i class="ph ph-envelope"></i>
+                <span>Enviar Email</span>
+              </a>
+              <a href="tel:${CONFIG.scheduling.fallbackPhone}" class="contact-option">
+                <i class="ph ph-phone"></i>
+                <span>Llamar</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Estilos del modal
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  document.body.appendChild(modal);
+  showNotification('Haz clic en "Abrir Calendario" para continuar', 'info');
+}
+
+// Nueva función para mostrar información de contacto como fallback
+function showContactFallback() {
+  const fallbackModal = document.createElement('div');
+  fallbackModal.className = 'fallback-modal';
+  fallbackModal.innerHTML = `
+    <div class="modal-overlay" onclick="this.parentElement.remove()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Contacta con Nosotros</h3>
+          <button class="modal-close" onclick="this.closest('.fallback-modal').remove()">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Puedes contactarnos directamente a través de:</p>
+          <div class="contact-options">
+            <a href="mailto:${CONFIG.scheduling.fallbackEmail}?subject=Solicitud de Reunión - Nodo Locker" class="contact-option">
+              <i class="ph ph-envelope"></i>
+              <span>Enviar Email</span>
+            </a>
+            <a href="tel:${CONFIG.scheduling.fallbackPhone}" class="contact-option">
+              <i class="ph ph-phone"></i>
+              <span>Llamar Ahora</span>
+            </a>
+            <button onclick="document.getElementById('contacto').scrollIntoView({behavior: 'smooth'}); this.closest('.fallback-modal').remove();" class="contact-option">
+              <i class="ph ph-chat-text"></i>
+              <span>Formulario de Contacto</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  fallbackModal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  document.body.appendChild(fallbackModal);
+}
+
+// Nueva función para tracking de eventos (opcional)
+function trackSchedulingEvent(eventName, data) {
+  // Aquí puedes integrar con Google Analytics, Mixpanel, etc.
+  console.log(`📊 Evento de agendamiento: ${eventName}`, data);
+  
+  // Ejemplo para Google Analytics (si está configurado)
+  if (typeof gtag !== 'undefined') {
+    gtag('event', eventName, {
+      event_category: 'scheduling',
+      event_label: data.source,
+      custom_map: data
+    });
+  }
+  
+  // Ejemplo para Facebook Pixel (si está configurado)
+  if (typeof fbq !== 'undefined') {
+    fbq('track', 'Schedule', data);
   }
 }
 
@@ -543,27 +753,58 @@ async function handleIntegrateOperation(button) {
   }
 }
 
+// FUNCIÓN MEJORADA PARA JOINWAITLIST (también para agendar)
 async function handleJoinWaitlist(button) {
   try {
-    showNotification('Agendando reunión...', 'info');
+    showNotification('Abriendo calendario de reuniones...', 'info');
     
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    // Añadir efecto visual
+    button.classList.add('scheduling');
     
-    showNotification('¡Reunión agendada exitosamente!', 'success');
+    // Usar la misma lógica que handleScheduleMeeting
+    const schedulingParams = new URLSearchParams({
+      'hide_event_type_details': '1',
+      'hide_gdpr_banner': '1',
+      'primary_color': 'ff6b35',
+      'text_color': '1e293b',
+      'background_color': 'ffffff',
+      'utm_source': 'nodolocker_website',
+      'utm_medium': 'nav_button',
+      'utm_campaign': 'reunion_comercial'
+    });
     
-    const buttonText = button.querySelector('.btn-text');
-    if (buttonText) {
-      buttonText.textContent = '¡Reunión agendada!';
+    const calendlyUrl = `${CONFIG.scheduling.calendlyUrl}?${schedulingParams.toString()}`;
+    const isMobile = window.innerWidth <= CONFIG.breakpoints.mobile;
+    
+    if (isMobile) {
+      window.location.href = calendlyUrl;
+    } else {
+      const newWindow = window.open(calendlyUrl, '_blank', 'noopener,noreferrer');
+      
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        showSchedulingModal(calendlyUrl);
+      } else {
+        showNotification('¡Calendario abierto! Selecciona tu horario preferido.', 'success');
+        setTimeout(() => {
+          if (newWindow && !newWindow.closed) {
+            newWindow.focus();
+          }
+        }, 500);
+      }
     }
     
-    button.disabled = true;
-    button.style.opacity = '0.7';
+    trackSchedulingEvent('calendar_opened', {
+      source: 'nav_button',
+      timestamp: new Date().toISOString(),
+      is_mobile: isMobile
+    });
     
   } catch (error) {
     console.error('Error al agendar reunión:', error);
-    showNotification('Error al procesar la solicitud', 'error');
+    showNotification('Error al abrir el calendario. Por favor, inténtalo de nuevo.', 'error');
+    showContactFallback();
   } finally {
-    button.classList.remove('loading');
+    button.classList.remove('loading', 'scheduling');
   }
 }
 
@@ -826,6 +1067,15 @@ const animationStyles = `
     }
   }
   
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
   .animated {
     animation-fill-mode: both;
   }
@@ -854,8 +1104,128 @@ const animationStyles = `
     transform: translate(-50%, -50%);
   }
   
+  .scheduling {
+    transform: scale(0.98);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+  }
+  
   @keyframes spin {
     to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  
+  /* Estilos para modales */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  }
+  
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  
+  .modal-close:hover {
+    background: #f1f5f9;
+    color: #475569;
+  }
+  
+  .modal-body {
+    padding: 24px;
+  }
+  
+  .modal-body p {
+    margin-bottom: 20px;
+    color: #64748b;
+    line-height: 1.6;
+  }
+  
+  .modal-actions {
+    margin-bottom: 24px;
+  }
+  
+  .modal-alternative {
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .modal-alternative p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  
+  .contact-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .contact-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  
+  .contact-option:hover {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  .contact-option i {
+    font-size: 1rem;
   }
   
   /* Animaciones de entrada suaves */
@@ -895,8 +1265,13 @@ window.NodoLocker = {
   showNotification,
   state,
   config: CONFIG,
-  elements
+  elements,
+  // Nuevas funciones exportadas
+  scheduleeMeeting: handleScheduleMeeting,
+  openCalendar: () => {
+    const calendlyUrl = `${CONFIG.scheduling.calendlyUrl}?primary_color=ff6b35`;
+    window.open(calendlyUrl, '_blank', 'noopener,noreferrer');
+  }
 };
 
-console.log('🚀 Nodo Locker - Animaciones suaves cargadas');
-
+console.log('🚀 Nodo Locker - Sistema de agendamiento activado');

@@ -1049,7 +1049,6 @@ body {
 
 .benefit-list {
   list-style: none;
-  space-y: var(--space-3);
 }
 
 .benefit-list li {
@@ -2187,6 +2186,205 @@ body {
   margin-top: var(--space-4);
 }
 
+/* ESTILOS ADICIONALES PARA EL SISTEMA DE AGENDAMIENTO */
+
+/* Estado de botón agendando */
+.scheduling {
+  transform: scale(0.98) !important;
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.4) !important;
+  background: var(--primary-dark) !important;
+}
+
+/* Modales para agendamiento */
+.scheduling-modal,
+.fallback-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+  padding: var(--space-4);
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+}
+
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-2xl);
+  position: relative;
+  z-index: 1;
+  animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-900);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: 50%;
+  transition: var(--transition-normal);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.modal-body {
+  padding: var(--space-6);
+}
+
+.modal-body p {
+  margin-bottom: var(--space-5);
+  color: var(--gray-600);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.modal-actions {
+  margin-bottom: var(--space-6);
+}
+
+.modal-alternative {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--gray-200);
+}
+
+.modal-alternative p {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-bottom: var(--space-4);
+  text-align: center;
+  font-weight: var(--font-weight-medium);
+}
+
+.contact-options {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.contact-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  color: var(--gray-700);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-semibold);
+  transition: var(--transition-normal);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.contact-option:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--white);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.contact-option i {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Animaciones adicionales */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Estados de carga mejorados */
+.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  to { 
+    transform: translate(-50%, -50%) rotate(360deg); 
+  }
+}
+
 /* Responsive Design para Galería de Lockers */
 @media (max-width: 1024px) {
   .locker-showcase {
@@ -2547,6 +2745,21 @@ body {
   .timeline-content h3 {
     font-size: 1.25rem;
   }
+
+  /* Modales responsive */
+  .modal-content {
+    margin: var(--space-4);
+    max-width: calc(100vw - 2rem);
+  }
+
+  .contact-options {
+    flex-direction: column;
+  }
+
+  .contact-option {
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -2681,6 +2894,25 @@ body {
   .badge-item {
     font-size: 0.625rem;
   }
+
+  /* Modales en móvil pequeño */
+  .modal-content {
+    margin: var(--space-2);
+    max-width: calc(100vw - 1rem);
+  }
+
+  .modal-header {
+    padding: var(--space-4) var(--space-4) var(--space-3);
+  }
+
+  .modal-body {
+    padding: var(--space-4);
+  }
+
+  .contact-option {
+    padding: var(--space-3);
+    font-size: 0.8rem;
+  }
 }
 
 /* Optimizaciones de Rendimiento */
@@ -2727,4 +2959,10 @@ textarea:focus-visible {
   background: var(--primary-gradient);
   z-index: 9999;
   transition: width 0.1s ease;
+}
+
+.downloading {
+  transform: scale(0.98);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  background: #10b981 !important;
 }
