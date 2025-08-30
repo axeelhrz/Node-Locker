@@ -2966,3 +2966,86 @@ textarea:focus-visible {
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
   background: #10b981 !important;
 }
+
+/* Galería de Lockers Expandida */
+.locker-gallery {
+  margin: var(--space-20) 0;
+  padding: var(--space-16) 0;
+  background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--gray-200);
+}
+
+.locker-showcase {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-8);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-8);
+}
+
+.locker-image-container {
+  position: relative;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  transition: var(--transition-slow);
+  background: var(--white);
+  padding: var(--space-4);
+  aspect-ratio: 4/3;
+}
+
+.locker-image-container:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-2xl), var(--glow-primary);
+}
+
+.locker-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-xl);
+  transition: var(--transition-slow);
+}
+
+.locker-image-container:hover .locker-image {
+  transform: scale(1.02);
+}
+
+/* Responsive adjustments for locker gallery */
+@media (max-width: 1024px) {
+  .locker-showcase {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+    max-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .locker-showcase {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    padding: 0 var(--space-4);
+  }
+  
+  .locker-image-container {
+    aspect-ratio: 16/10;
+  }
+}
+
+@media (max-width: 480px) {
+  .locker-gallery {
+    margin: var(--space-16) 0;
+    padding: var(--space-12) 0;
+  }
+  
+  .locker-showcase {
+    gap: var(--space-4);
+  }
+  
+  .locker-image-container {
+    padding: var(--space-3);
+    aspect-ratio: 3/2;
+  }
+}
