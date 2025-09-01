@@ -20,12 +20,12 @@ const CONFIG = {
     rootMargin: '0px 0px -100px 0px'
   },
   scheduling: {
-    calendlyUrl: 'https://calendly.com/nodolocker/reunion-comercial',
+    calendlyUrl: 'https://calendly.com/axeelhrz/30min', // Reemplaza con tu URL real
     meetingDuration: 30,
     timezone: 'America/Mexico_City',
-    fallbackEmail: 'contacto@nodolocker.mx',
-    fallbackPhone: '+52 55 1234 5678'
-  }
+    fallbackEmail: 'contacto@nodolocker.com', // Cambiado a .com
+    fallbackPhone: '+52 55 XXXX XXXX' // Tu número real
+  } 
 };
 
 // Estado de la aplicación
@@ -843,20 +843,32 @@ async function handleFormSubmit(e) {
   try {
     showNotification('Enviando mensaje...', 'info');
     
-    // Simular envío
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Envío real con Formspree
+    const response = await fetch('https://formspree.io/f/mzzavvvw', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
     
-    showNotification('¡Mensaje enviado exitosamente! Te contactaremos pronto.', 'success');
-    e.target.reset();
+    if (response.ok) {
+      showNotification('¡Mensaje enviado exitosamente! Te contactaremos pronto.', 'success');
+      e.target.reset();
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error en el envío');
+    }
     
   } catch (error) {
     console.error('Error al enviar formulario:', error);
-    showNotification('Error al enviar el mensaje. Inténtalo de nuevo.', 'error');
+    showNotification('Error al enviar el mensaje. Por favor, inténtalo de nuevo.', 'error');
   } finally {
     submitButton.classList.remove('loading');
     submitButton.disabled = false;
   }
 }
+
 
 async function handleNewsletterSubmit(e) {
   e.preventDefault();
@@ -882,11 +894,27 @@ async function handleNewsletterSubmit(e) {
   try {
     showNotification('Suscribiendo...', 'info');
     
-    // Simular suscripción
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Crear FormData para newsletter
+    const newsletterData = new FormData();
+    newsletterData.append('email', email);
+    newsletterData.append('_subject', 'Nueva suscripción al newsletter - Nodo Locker');
+    newsletterData.append('type', 'newsletter');
     
-    showNotification('¡Te has suscrito exitosamente! Recibirás nuestras actualizaciones.', 'success');
-    e.target.reset();
+    // Envío real con Formspree
+    const response = await fetch('https://formspree.io/f/mzzavvvw', {
+      method: 'POST',
+      body: newsletterData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      showNotification('¡Te has suscrito exitosamente! Recibirás nuestras actualizaciones.', 'success');
+      e.target.reset();
+    } else {
+      throw new Error('Error en la suscripción');
+    }
     
   } catch (error) {
     console.error('Error al suscribir:', error);
