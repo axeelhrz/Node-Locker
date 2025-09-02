@@ -20,7 +20,7 @@ const CONFIG = {
     rootMargin: '0px 0px -100px 0px'
   },
   scheduling: {
-    calendlyUrl: 'https://calendly.com/axeelhrz/30min', // Reemplaza con tu URL real
+    calendlyUrl: 'https://calendly.com/contacto-nodolocker/30min', // URL actualizada
     meetingDuration: 30,
     timezone: 'America/Mexico_City',
     fallbackEmail: 'contacto@nodolocker.com', // Cambiado a .com
