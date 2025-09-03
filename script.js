@@ -843,8 +843,8 @@ async function handleFormSubmit(e) {
   try {
     showNotification('Enviando mensaje...', 'info');
     
-    // Envío real con Formspree
-    const response = await fetch('https://formspree.io/f/mzzavvvw', {
+    // Envío real con Formspree - ENDPOINT ACTUALIZADO
+    const response = await fetch('https://formspree.io/f/xgvlnlao', {
       method: 'POST',
       body: formData,
       headers: {
@@ -855,6 +855,13 @@ async function handleFormSubmit(e) {
     if (response.ok) {
       showNotification('¡Mensaje enviado exitosamente! Te contactaremos pronto.', 'success');
       e.target.reset();
+      
+      // Opcional: Redirigir después de un delay
+      setTimeout(() => {
+        // Scroll suave hacia arriba o mostrar mensaje de agradecimiento
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 2000);
+      
     } else {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Error en el envío');
@@ -868,7 +875,6 @@ async function handleFormSubmit(e) {
     submitButton.disabled = false;
   }
 }
-
 
 async function handleNewsletterSubmit(e) {
   e.preventDefault();
@@ -899,9 +905,10 @@ async function handleNewsletterSubmit(e) {
     newsletterData.append('email', email);
     newsletterData.append('_subject', 'Nueva suscripción al newsletter - Nodo Locker');
     newsletterData.append('type', 'newsletter');
+    newsletterData.append('source', 'footer_newsletter');
     
-    // Envío real con Formspree
-    const response = await fetch('https://formspree.io/f/mzzavvvw', {
+    // Envío real con Formspree - ENDPOINT ACTUALIZADO
+    const response = await fetch('https://formspree.io/f/xgvlnlao', {
       method: 'POST',
       body: newsletterData,
       headers: {
@@ -912,8 +919,21 @@ async function handleNewsletterSubmit(e) {
     if (response.ok) {
       showNotification('¡Te has suscrito exitosamente! Recibirás nuestras actualizaciones.', 'success');
       e.target.reset();
+      
+      // Actualizar texto del botón temporalmente
+      const buttonText = submitButton.querySelector('span');
+      const originalText = buttonText ? buttonText.textContent : '';
+      
+      if (buttonText) {
+        buttonText.textContent = '¡Suscrito!';
+        setTimeout(() => {
+          buttonText.textContent = originalText;
+        }, 3000);
+      }
+      
     } else {
-      throw new Error('Error en la suscripción');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error en la suscripción');
     }
     
   } catch (error) {

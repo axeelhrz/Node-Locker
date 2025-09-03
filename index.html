@@ -604,9 +604,11 @@
                         <p>Cuéntanos sobre tu proyecto y te ayudaremos a encontrar la mejor solución</p>
                     </div>
                     
-                    <form class="contact-form-improved" id="contactForm" action="https://formspree.io/f/mzzavvvw" method="POST">
+                    <form class="contact-form-improved" id="contactForm" action="https://formspree.io/f/xgvlnlao" method="POST">
                         <div class="form-row">
-                            <d er"></i>
+                            <div class="form-group">
+                                <label for="name">
+                                    <i class="ph ph-user"></i>
                                     Nombre completo
                                 </label>
                                 <input type="text" id="name" name="name" placeholder="Tu nombre completo" required>
@@ -667,6 +669,11 @@
                                 Quiero recibir actualizaciones sobre Nodo Locker
                             </label>
                         </div>
+                        
+                        <!-- Campos ocultos para Formspree -->
+                        <input type="hidden" name="_subject" value="Nuevo contacto desde Nodo Locker">
+                        <input type="hidden" name="_next" value="https://nodolocker.mx/gracias">
+                        <input type="hidden" name="_captcha" value="false">
                         
                         <button type="submit" class="btn-primary large full-width">
                             <i class="ph ph-paper-plane-right btn-icon-left"></i>
